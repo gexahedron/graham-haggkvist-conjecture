@@ -1,3 +1,10 @@
+/*
+ * File:   regular_digraph_decomposition.cpp
+ * Author: Nikolay Ulyanov
+ *
+ * Created sometime between May and June 2014
+ */
+
 #include <iostream>
 #include <cstdio>
 #include <vector>
