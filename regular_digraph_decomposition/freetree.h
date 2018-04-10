@@ -1,21 +1,20 @@
-/*==============================================================*/
-/* program: freetree.h                                          */
-/* purpose: generating all free trees                           */
-/* input  : n -- number of nodes                                */
-/*          m -- max degree                                     */
-/*          lb, ub -- lower and upper bound on diameter         */
-/* output : listing of free trees in relex order                */
-/* date   : September 1995, updated September 2000              */
-/* programmers: Gang Li & Frank Ruskey                          */
-/* algorithm: From the paper: G. Li and F. Ruskey, "The         */
-/*  Advantages of Forward Thinking in Generating Rooted and     */
-/*  Free Trees",  10th Annual ACM-SIAM Symposium on Discrete    */
-/*  Algorithms (SODA), (1999) S939-940.  See the web page at    */
-/*  http://webhome.cs.uvic.ca/~ruskey/fruskey.html              */
-/*    Publications/RootedFreeTree.html                          */
-/* more info: see                                               */
-/*  http://theory.cs.uvic.ca/inf/tree/FreeTrees.html            */
-/*==============================================================*/
+/*=====================================================================================*/
+/* program: freetree.h                                                                 */
+/* purpose: generating all free trees                                                  */
+/* input  : n -- number of nodes                                                       */
+/*          m -- max degree                                                            */
+/*          lb, ub -- lower and upper bound on diameter                                */
+/* output : listing of free trees in relex order                                       */
+/* date   : September 1995, updated September 2000                                     */
+/* programmers: Gang Li & Frank Ruskey                                                 */
+/* algorithm: From the paper: G. Li and F. Ruskey, "The                                */
+/*  Advantages of Forward Thinking in Generating Rooted and                            */
+/*  Free Trees",  10th Annual ACM-SIAM Symposium on Discrete                           */
+/*  Algorithms (SODA), (1999) S939-940.  See the web page at                           */
+/*  http://webhome.cs.uvic.ca/~ruskey/Publications/RootedFreeTree/RootedFreeTree.html  */
+/* more info: see                                                                      */
+/*  http://theory.cs.uvic.ca/inf/tree/FreeTrees.html                                   */
+/*=====================================================================================*/
 
 namespace NFreeTree {
 
@@ -25,8 +24,8 @@ int par[MAX_SIZE];       /* parent position of i           */
 int L[MAX_SIZE];         /* level of node i                */
 int k;                   /* max number of children         */
 int chi[MAX_SIZE];       /* number of children of a node   */
-int next_p[MAX_SIZE];    /* next Good pos to add nodes     */
-int r_chi[MAX_SIZE];     /* the right most child of node i */
+int next_p[MAX_SIZE];    /* next good pos to add nodes     */
+int r_chi[MAX_SIZE];     /* the rightmost child of node i  */
 int ub;                  /* upper bound                    */
 int num;                 /* number of trees                */
 
@@ -46,8 +45,9 @@ void UpdateL() {
 }
 
 bool Good(int p, int h, int t) {
-  if (p == 2 && K <= 2 && t == 0)
+  if (p == 2 && K <= 2 && t == 0) {
     return true;
+  }
   if (t == 1) {
     if ((2 * h >= K + 1) && (2 * h <= U + 1)) {
       if ((p - 1) * 2 >= N) {
@@ -186,8 +186,8 @@ void GenTree(int p, int s, int cL, int h, int l, int n, int f, int g) {
 
 void ProcessInput(int n) {
   N = n;     // N is the number of nodes in the tree
-  M = N - 1;
-  K = 2;
+  M = N - 1; // TODO: what is this?
+  K = 2;     // TODO: what is this?
   U = N - 1; // U is an upper bound on the diameter of the tree
 }
 
@@ -196,7 +196,7 @@ int FreeTree(int n) {
   /* first set all the parameters */
   ProcessInput(n);
   if (K > U) {
-    //printf("ERROR: lb > ub !!\n");
+    //printf("ERROR: lower bound > upper bound !!\n");
     return -1;
   }
   if (U > 1) {
@@ -207,7 +207,7 @@ int FreeTree(int n) {
       U = N - 1;
     }
   } else {
-    //printf("ERROR: ub is too small, should be >= 2\n");
+    //printf("ERROR: upper bound is too small, should be >= 2\n");
     return -1;
   }
 
