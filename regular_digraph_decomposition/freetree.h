@@ -14,6 +14,8 @@
 /*  http://webhome.cs.uvic.ca/~ruskey/Publications/RootedFreeTree/RootedFreeTree.html  */
 /* more info: see                                                                      */
 /*  http://theory.cs.uvic.ca/inf/tree/FreeTrees.html                                   */
+/* You can find a more recent version (2017) in the nauty package, by Brendon McKay:   */
+/*  http://pallini.di.uniroma1.it                                                      */
 /*=====================================================================================*/
 
 namespace NFreeTree {
