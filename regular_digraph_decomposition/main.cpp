@@ -1,5 +1,5 @@
 /*
- * File:   regular_digraph_decomposition.cpp
+ * File:   regular_digraph_decomposition
  * Author: Nikolay Ulyanov
  *
  * Created sometime between May and June 2014
@@ -7,11 +7,8 @@
 
 #include <random>
 #include <iostream>
-#include <cstdio>
 #include <vector>
 #include <ctime>
-#include <cstdlib>
-#include <cmath>
 #include <algorithm>
 #include <set>
 #include <sstream>
@@ -54,29 +51,30 @@ bool genEdge(int iter, int v) {
       // treeSize+1 number of trees
       bool regular_count = true;
       for (int v1 = 0; v1 < n; ++v1) {
-          set<int> trees;
-          for (int v2 = 0; v2 < n; ++v2) {
-              if (usedEdge[v1][v2]) {
-                  trees.insert(whose_edge[v1][v2]);
-              }
-              if (usedEdge[v2][v1]) {
-                  trees.insert(whose_edge[v2][v1]);
-              }
+        set<int> trees;
+        for (int v2 = 0; v2 < n; ++v2) {
+          if (usedEdge[v1][v2]) {
+            trees.insert(whose_edge[v1][v2]);
           }
-          if (trees.size() != treeSize + 1) {
-              regular_count = false;
-              break;
+          if (usedEdge[v2][v1]) {
+            trees.insert(whose_edge[v2][v1]);
           }
+        }
+        if (trees.size() != treeSize + 1) {
+          regular_count = false;
+          break;
+        }
       }
       if (!regular_count) {
-          return false;
+        return false;
       }
       ++cnt;
       return true; // use false for counting, true for detecting 0
     }
     else {
-      if (genEdge(1, v + 1))
+      if (genEdge(1, v + 1)) {
         return true;
+      }
     }
     return false;
   }
@@ -88,25 +86,30 @@ bool genEdge(int iter, int v) {
   vector<tuple<int, int, int, int>> forSort;
   for (int i = 0; i < treeSize; ++i) {
     int u = gr[dir][curV][i];
-    if (isn[u][iter])
+    if (isn[u][iter]) {
       continue;
+    }
 
     int v1 = curV;
     int v2 = u;
-    if (dir == 1)
+    if (dir == 1) {
       swap(v1, v2);
-    if (usedEdge[v1][v2])
+    }
+    if (usedEdge[v1][v2]) {
       continue;
+    }
 
     // TODO: add description what isBad here
     bool isBad = false;
     for (int j = 0; j < iter - 1; ++j) {
       isBad = (u == neib[v][j]);
-      if (isBad)
+      if (isBad) {
         break;
+      }
     }
-    if (isBad)
+    if (isBad) {
       continue;
+    }
 
     isn[u][iter] = true;
     neib[v][iter] = u;
@@ -114,8 +117,9 @@ bool genEdge(int iter, int v) {
 
     whose_edge[v1][v2] = v;
 
-    if (genEdge(iter + 1, v))
+    if (genEdge(iter + 1, v)) {
       return true;
+    }
 
     usedEdge[v1][v2] = false;
     isn[u][iter] = false;
@@ -138,8 +142,9 @@ int main(int argc, char** argv) {
     cerr << "iter=" << nomIter << "; ";
     for (n = min_n; n <= max_n; ++n) {
       cerr << "n=" << n << ": ";
-      if (wasWTF)
+      if (wasWTF) {
         break;
+      }
 
       piiEdges.clear();
 
@@ -170,28 +175,32 @@ int main(int argc, char** argv) {
           }
         }
         bool allIsGood = true;
-        for (int i = 0; i < n; ++i)
+        for (int i = 0; i < n; ++i) {
           allIsGood = allIsGood && (degIn[i] == treeSize) && (degOut[i] == treeSize);
-        if (allIsGood)
+        }
+        if (allIsGood) {
           isRegular = true;
+        }
       }
 
       for (int i = 0; i < n; ++i) {
         gr[0][i].clear();
         gr[1][i].clear();
       }
-      for (int i = 0; i < n; ++i)
+      for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
           dege[i][j] = 0;
           whose_edge[i][j] = 0;
         }
+      }
 
       for (int i = 0; i < (int) piiEdges.size(); ++i) {
         int v1, v2;
         v1 = piiEdges[i].first;
         v2 = piiEdges[i].second;
-        if (doTakePair[i])
+        if (doTakePair[i]) {
           dege[v1][v2] = 1;
+        }
       }
 
       for (int i = 0; i < n; ++i) {
@@ -207,19 +216,25 @@ int main(int argc, char** argv) {
         cerr << curTree << ",";
         for (int curType = 0; curType < 2; ++curType) {
           vPart[0] = curType;
-          for (int i = 0; i < treeSize; ++i)
+          for (int i = 0; i < treeSize; ++i) {
             vPart[i + 1] = 1 - vPart[treeDatabase[curTree][i + 2]];
+          }
 
-          for (int i = 0; i < n; ++i)
-            for (int j = 0; j <= treeSize; ++j)
+          for (int i = 0; i < n; ++i) {
+            for (int j = 0; j <= treeSize; ++j) {
               isn[i][j] = false;
+            }
+          }
 
-          for (int i = 0; i < n; ++i)
-            for (int j = 0; j < n; ++j)
-                usedEdge[i][j] = false;
+          for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+              usedEdge[i][j] = false;
+            }
+          }
 
-          for (int i = 0; i < n; ++i)
+          for (int i = 0; i < n; ++i) {
             neib[i][0] = i;
+          }
 
           cnt = 0;
           bool result = genEdge(1, 0);
@@ -230,18 +245,21 @@ int main(int argc, char** argv) {
             cout << "iter#=" << nomIter << "; tree#=" << curTree << "; type#=" << curType << endl;
             cout << "tree: ";
             for (int i = 0; i <= treeSize; ++i) {
-                cout << treeDatabase[curTree][i + 1] << " ";
+              cout << treeDatabase[curTree][i + 1] << " ";
             }
             cout << endl;
             cout << "parts: ";
-            for (int i = 0; i <= treeSize; ++i)
+            for (int i = 0; i <= treeSize; ++i) {
               cout << vPart[i] << " ";
+            }
             cout << endl;
             for (int i = 0; i < n; ++i) {
               cout << i << ": ";
-              for (int j = 0; j < n; ++j)
-                if (dege[i][j] > 0)
+              for (int j = 0; j < n; ++j) {
+                if (dege[i][j] > 0) {
                   cout << j << " ";
+                }
+              }
               cout << endl;
             }
             cout << endl;
@@ -262,3 +280,4 @@ int main(int argc, char** argv) {
   cout << "Time: " << elapsed_secs << "s" << endl;
   return 0;
 }
+
