@@ -2,7 +2,7 @@
 Various code related to the Graham-Häggkvist conjecture.
 
 Code is released under MIT License, except for freetree.h, which should have it's own license,
-but I don't know which one. Probably you should contact Frank Ruskey about it.
+but I don't know which one. Probably you should contact Frank Ruskey about it. A wrapped version of freetree is called gentreeg.c in the current version of nauty, which is distributed with the Apache licence.
 
 TODO: Write smth about:
 * what has been coded
