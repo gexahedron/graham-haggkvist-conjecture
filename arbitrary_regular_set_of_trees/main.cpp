@@ -144,11 +144,10 @@ bool genEdge(int iter, int v) {
 	return false;
 }
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char** argv) {
     //random_device rd;
     //mt19937 gen(rd());
-    mt19937 gen(123123);
+    mt19937 gen(42);
 
 	beginClock = clock();
 	bool wasWTF = false;
