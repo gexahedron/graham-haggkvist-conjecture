@@ -19,14 +19,14 @@ using namespace std;
 const int maxn = 30;
 const int NONE = -1;
 
-clock_t beginClock, endClock;
-vector<pair<int, int>> piiEdges;
-bool doTakePair[maxn*maxn];
-int degIn[maxn];
-int degOut[maxn];
+clock_t begin_clock, end_clock;
+vector<pair<int, int>> pii_edges;
+bool take_pair[maxn * maxn];
+int deg_in[maxn];
+int deg_out[maxn];
 
-int dege[maxn][maxn];
-bool usedEdge[maxn][maxn];
+int edge_deg[maxn][maxn];
+bool used_edge[maxn][maxn];
 int whose_edge[maxn][maxn];
 
 bool used_copy[maxn][maxn];
@@ -34,37 +34,35 @@ int copy_count[maxn];
 
 int cnt;
 
-vector<int> gr[2][maxn]; // 0 - From, 1 - To
+vector<int> gr[2][maxn]; // 0 - from, 1 - to
 
 int n;
-const int treeSize = 5; // number of edges
-const int min_n = treeSize + 3; // min_n > treeSize + 1
+const int tree_size = 5; // number of edges
+const int min_n = tree_size + 3; // min_n > tree_size + 1
 const int max_n = min_n;
 const int max_iter = 20;
 
-int neib[maxn][treeSize + 1];
-bool isn[maxn][treeSize + 1];
-int vPart[treeSize + 1];
-int curTree, curVertex;
-// TODO: fix all this treeSize + 1 to treeSize; don't mess with indices
+int neib[maxn][tree_size + 1];
+bool is_n[maxn][tree_size + 1];
+int v_part[tree_size + 1];
+int cur_tree;
+// TODO: fix all this tree_size + 1 to tree_size; don't mess with indices
 
-bool genEdge(int iter, int v) {
-  if (iter == treeSize + 1) {
+bool GenEdge(int iter, int v) {
+  if (iter == tree_size + 1) {
     if (v == n - 1) {
-      // TODO: check that each vertex is incident to
-      // treeSize+1 number of trees
       bool regular_count = true;
       for (int v1 = 0; v1 < n; ++v1) {
         set<int> trees;
         for (int v2 = 0; v2 < n; ++v2) {
-          if (usedEdge[v1][v2]) {
+          if (used_edge[v1][v2]) {
             trees.insert(whose_edge[v1][v2]);
           }
-          if (usedEdge[v2][v1]) {
+          if (used_edge[v2][v1]) {
             trees.insert(whose_edge[v2][v1]);
           }
         }
-        if (trees.size() != treeSize + 1) {
+        if (trees.size() != tree_size + 1) {
           regular_count = false;
           break;
         }
@@ -76,48 +74,47 @@ bool genEdge(int iter, int v) {
       return true; // use false for counting, true for detecting 0
     }
     else {
-      if (genEdge(1, v + 1)) {
+      if (GenEdge(1, v + 1)) {
         return true;
       }
     }
     return false;
   }
 
-  int vInTree = treeDatabase[curTree][iter - 1 + 2];
-  int curV = neib[v][vInTree];
-  int dir = vPart[vInTree];
+  const int v_in_tree = NFreeTree::tree_database[cur_tree][iter - 1 + 2];
+  const int cur_v = neib[v][v_in_tree];
+  const int dir = v_part[v_in_tree];
 
-  vector<tuple<int, int, int, int>> forSort;
-  for (int i = 0; i < treeSize; ++i) {
-    int u = gr[dir][curV][i];
-    if (isn[u][iter]) {
+  for (int i = 0; i < tree_size; ++i) {
+    int u = gr[dir][cur_v][i];
+    if (is_n[u][iter]) {
       continue;
     }
 
-    int v1 = curV;
+    int v1 = cur_v;
     int v2 = u;
     if (dir == 1) {
       swap(v1, v2);
     }
-    if (usedEdge[v1][v2]) {
+    if (used_edge[v1][v2]) {
       continue;
     }
 
-    // TODO: add description what isBad here
-    bool isBad = false;
+    // TODO: add description what is_bad here
+    bool is_bad = false;
     for (int j = 0; j < iter - 1; ++j) {
-      isBad = (u == neib[v][j]);
-      if (isBad) {
+      is_bad = (u == neib[v][j]);
+      if (is_bad) {
         break;
       }
     }
-    if (isBad) {
+    if (is_bad) {
       continue;
     }
 
-    isn[u][iter] = true;
+    is_n[u][iter] = true;
     neib[v][iter] = u;
-    usedEdge[v1][v2] = true;
+    used_edge[v1][v2] = true;
 
     whose_edge[v1][v2] = v;
     const bool prev_used_copy_v1 = used_copy[v1][v];
@@ -131,8 +128,8 @@ bool genEdge(int iter, int v) {
         ++copy_count[v2];
     }
 
-    if (copy_count[v1] <= treeSize + 1 && copy_count[v2] <= treeSize + 1) {
-      if (genEdge(iter + 1, v)) {
+    if (copy_count[v1] <= tree_size + 1 && copy_count[v2] <= tree_size + 1) {
+      if (GenEdge(iter + 1, v)) {
         return true;
       }
     }
@@ -146,8 +143,8 @@ bool genEdge(int iter, int v) {
         --copy_count[v2];
     }
 
-    usedEdge[v1][v2] = false;
-    isn[u][iter] = false;
+    used_edge[v1][v2] = false;
+    is_n[u][iter] = false;
   }
   return false;
 }
@@ -156,55 +153,55 @@ int main(int argc, char** argv) {
   //random_device rd;
   mt19937 g(42);//rd());
 
-  beginClock = clock();
-  bool wasWTF = false;
-  int nomIter = 0;
+  begin_clock = clock();
+  bool found_combination_without_solution = false;
+  int iter_num = 0;
 
-  freeTree(treeSize + 1);
-  cerr << "totalAmount=" << totalAmount << endl;
+  NFreeTree::FreeTree(tree_size + 1);
+  cerr << "total_amount=" << NFreeTree::total_amount << endl;
 
-  while (!wasWTF) {
-    cerr << "iter=" << nomIter << "; ";
+  while (!found_combination_without_solution) {
+    cerr << "iter=" << iter_num << "; ";
     for (n = min_n; n <= max_n; ++n) {
       cerr << "n=" << n << ": ";
-      if (wasWTF) {
+      if (found_combination_without_solution) {
         break;
       }
 
-      piiEdges.clear();
+      pii_edges.clear();
 
       for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
           if (i != j) {
-            piiEdges.push_back(make_pair(i,j));
+            pii_edges.push_back(make_pair(i, j));
           }
         }
       }
 
-      bool isRegular = false;
-      while (!isRegular) {
-        shuffle(piiEdges.begin(), piiEdges.end(), g);
+      bool is_regular = false;
+      while (!is_regular) {
+        shuffle(pii_edges.begin(), pii_edges.end(), g);
         for (int i = 0; i < n; ++i) {
-          degIn[i] = 0;
-          degOut[i] = 0;
+          deg_in[i] = 0;
+          deg_out[i] = 0;
         }
-        for (int i = 0; i < (int) piiEdges.size(); ++i) {
-          doTakePair[i] = false;
+        for (int i = 0; i < (int) pii_edges.size(); ++i) {
+          take_pair[i] = false;
           int v1, v2;
-          v1 = piiEdges[i].first;
-          v2 = piiEdges[i].second;
-          if ((degOut[v1] < treeSize) && (degIn[v2] < treeSize)) {
-            doTakePair[i] = true;
-            ++degOut[v1];
-            ++degIn[v2];
+          v1 = pii_edges[i].first;
+          v2 = pii_edges[i].second;
+          if ((deg_out[v1] < tree_size) && (deg_in[v2] < tree_size)) {
+            take_pair[i] = true;
+            ++deg_out[v1];
+            ++deg_in[v2];
           }
         }
-        bool allIsGood = true;
+        is_regular = true;
         for (int i = 0; i < n; ++i) {
-          allIsGood = allIsGood && (degIn[i] == treeSize) && (degOut[i] == treeSize);
-        }
-        if (allIsGood) {
-          isRegular = true;
+          is_regular = is_regular && (deg_in[i] == tree_size) && (deg_out[i] == tree_size);
+          if (!is_regular) {
+            break;
+          }
         }
       }
 
@@ -214,46 +211,46 @@ int main(int argc, char** argv) {
       }
       for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-          dege[i][j] = 0;
+          edge_deg[i][j] = 0;
         }
       }
 
-      for (int i = 0; i < (int) piiEdges.size(); ++i) {
+      for (int i = 0; i < (int) pii_edges.size(); ++i) {
         int v1, v2;
-        v1 = piiEdges[i].first;
-        v2 = piiEdges[i].second;
-        if (doTakePair[i]) {
-          dege[v1][v2] = 1;
+        v1 = pii_edges[i].first;
+        v2 = pii_edges[i].second;
+        if (take_pair[i]) {
+          edge_deg[v1][v2] = 1;
         }
       }
 
       for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-          if (dege[i][j] != 0) {
+          if (edge_deg[i][j] != 0) {
             gr[0][i].push_back(j);
             gr[1][j].push_back(i);
           }
         }
       }
       cerr << "tree#=";
-      for (curTree = 0; curTree < totalAmount - 1; ++curTree) {
-        cerr << curTree << ",";
-        for (int curType = 0; curType < 2; ++curType) {
-          vPart[0] = curType;
-          for (int i = 0; i < treeSize; ++i) {
-            vPart[i + 1] = 1 - vPart[treeDatabase[curTree][i + 2]];
+      for (cur_tree = 0; cur_tree < NFreeTree::total_amount - 1; ++cur_tree) {
+        cerr << cur_tree << ",";
+        for (int cur_type = 0; cur_type < 2; ++cur_type) {
+          v_part[0] = cur_type;
+          for (int i = 0; i < tree_size; ++i) {
+            v_part[i + 1] = 1 - v_part[NFreeTree::tree_database[cur_tree][i + 2]];
           }
 
           for (int i = 0; i < n; ++i) {
-            for (int j = 0; j <= treeSize; ++j) {
-              isn[i][j] = false;
+            for (int j = 0; j <= tree_size; ++j) {
+              is_n[i][j] = false;
             }
           }
 
           for (int i = 0; i < n; ++i) {
             copy_count[i] = 0;
             for (int j = 0; j < n; ++j) {
-              usedEdge[i][j] = false;
+              used_edge[i][j] = false;
               whose_edge[i][j] = NONE;
               used_copy[i][j] = false;
             }
@@ -264,47 +261,47 @@ int main(int argc, char** argv) {
           }
 
           cnt = 0;
-          bool result = genEdge(1, 0);
+          bool result = GenEdge(1, 0);
 
           if (!cnt) {
-            cout << "WTF" << endl;
-            wasWTF = true;
-            cout << "iter#=" << nomIter << "; tree#=" << curTree << "; type#=" << curType << endl;
-            cout << "tree: ";
-            for (int i = 0; i <= treeSize; ++i) {
-              cout << treeDatabase[curTree][i + 1] << " ";
+            cerr << "Found combination without solution!" << endl;
+            found_combination_without_solution = true;
+            cerr << "iter#=" << iter_num << "; tree#=" << cur_tree << "; type#=" << cur_type << endl;
+            cerr << "tree: ";
+            for (int i = 0; i <= tree_size; ++i) {
+              cerr << NFreeTree::tree_database[cur_tree][i + 1] << " ";
             }
-            cout << endl;
-            cout << "parts: ";
-            for (int i = 0; i <= treeSize; ++i) {
-              cout << vPart[i] << " ";
+            cerr << endl;
+            cerr << "parts: ";
+            for (int i = 0; i <= tree_size; ++i) {
+              cerr << v_part[i] << " ";
             }
-            cout << endl;
+            cerr << endl;
             for (int i = 0; i < n; ++i) {
-              cout << i << ": ";
+              cerr << i << ": ";
               for (int j = 0; j < n; ++j) {
-                if (dege[i][j] > 0) {
-                  cout << j << " ";
+                if (edge_deg[i][j] > 0) {
+                  cerr << j << " ";
                 }
               }
-              cout << endl;
+              cerr << endl;
             }
-            cout << endl;
-            cout << endl;
+            cerr << endl;
+            cerr << endl;
           }
         }
       }
     }
-    ++nomIter;
-    endClock = clock();
-    double elapsed_secs = double(endClock - beginClock) / CLOCKS_PER_SEC;
-    beginClock = endClock;
-    cerr << " time: " << elapsed_secs << "s" << endl;
+    ++iter_num;
+    end_clock = clock();
+    double elapsed_secs = double(end_clock - begin_clock) / CLOCKS_PER_SEC;
+    begin_clock = end_clock;
+    cerr << "time: " << elapsed_secs << "s" << endl;
   }
 
-  endClock = clock();
-  double elapsed_secs = double(endClock - beginClock) / CLOCKS_PER_SEC;
-  cout << "Time: " << elapsed_secs << "s" << endl;
+  end_clock = clock();
+  double elapsed_secs = double(end_clock - begin_clock) / CLOCKS_PER_SEC;
+  cerr << "time: " << elapsed_secs << "s" << endl;
   return 0;
 }
 
