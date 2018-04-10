@@ -53,7 +53,23 @@ bool genEdge(int iter, int v) {
       // TODO: check that each vertex is incident to
       // treeSize+1 number of trees
       bool regular_count = true;
-      for (int v = 0; v < n; ++v) {
+      for (int v1 = 0; v1 < n; ++v1) {
+          set<int> trees;
+          for (int v2 = 0; v2 < n; ++v2) {
+              if (usedEdge[v1][v2]) {
+                  trees.insert(whose_edge[v1][v2]);
+              }
+              if (usedEdge[v2][v1]) {
+                  trees.insert(whose_edge[v2][v1]);
+              }
+          }
+          if (trees.size() != treeSize + 1) {
+              regular_count = false;
+              break;
+          }
+      }
+      if (!regular_count) {
+          return false;
       }
       ++cnt;
       return true; // use false for counting, true for detecting 0
@@ -96,7 +112,7 @@ bool genEdge(int iter, int v) {
     neib[v][iter] = u;
     usedEdge[v1][v2] = true;
 
-    whose_edge[v1][v2] = iter;
+    whose_edge[v1][v2] = v;
       
     if (genEdge(iter + 1, v))
       return true;
@@ -212,6 +228,12 @@ int main(int argc, char** argv) {
             cout << "WTF" << endl;
             wasWTF = true;
             cout << "iter#=" << nomIter << "; tree#=" << curTree << "; type#=" << curType << endl;
+            cout << "tree: ";
+            for (int i = 0; i <= treeSize; ++i) {
+                cout << treeDatabase[curTree][i + 1] << " ";
+            }
+            cout << endl;
+            cout << "parts: ";
             for (int i = 0; i <= treeSize; ++i)
               cout << vPart[i] << " ";
             cout << endl;
