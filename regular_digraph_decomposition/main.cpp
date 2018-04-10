@@ -17,6 +17,7 @@
 using namespace std;
 
 const int maxn = 30;
+const int NONE = -1;
 
 clock_t beginClock, endClock;
 vector<pair<int, int>> piiEdges;
@@ -28,12 +29,15 @@ int dege[maxn][maxn];
 bool usedEdge[maxn][maxn];
 int whose_edge[maxn][maxn];
 
+bool used_copy[maxn][maxn];
+int copy_count[maxn];
+
 int cnt;
 
 vector<int> gr[2][maxn]; // 0 - From, 1 - To
 
 int n;
-const int treeSize = 6; // number of edges
+const int treeSize = 5; // number of edges
 const int min_n = treeSize + 3; // min_n > treeSize + 1
 const int max_n = min_n;
 const int max_iter = 20;
@@ -116,9 +120,30 @@ bool genEdge(int iter, int v) {
     usedEdge[v1][v2] = true;
 
     whose_edge[v1][v2] = v;
+    const bool prev_used_copy_v1 = used_copy[v1][v];
+    const bool prev_used_copy_v2 = used_copy[v2][v];
+    if (!used_copy[v1][v]) {
+        used_copy[v1][v] = true;
+        ++copy_count[v1];
+    }
+    if (!used_copy[v2][v]) {
+        used_copy[v2][v] = true;
+        ++copy_count[v2];
+    }
 
-    if (genEdge(iter + 1, v)) {
-      return true;
+    if (copy_count[v1] <= treeSize + 1 && copy_count[v2] <= treeSize + 1) {
+      if (genEdge(iter + 1, v)) {
+        return true;
+      }
+    }
+
+    if (!prev_used_copy_v1) {
+        used_copy[v1][v] = false;
+        --copy_count[v1];
+    }
+    if (!prev_used_copy_v2) {
+        used_copy[v2][v] = false;
+        --copy_count[v2];
     }
 
     usedEdge[v1][v2] = false;
@@ -190,7 +215,6 @@ int main(int argc, char** argv) {
       for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
           dege[i][j] = 0;
-          whose_edge[i][j] = 0;
         }
       }
 
@@ -227,8 +251,11 @@ int main(int argc, char** argv) {
           }
 
           for (int i = 0; i < n; ++i) {
+            copy_count[i] = 0;
             for (int j = 0; j < n; ++j) {
               usedEdge[i][j] = false;
+              whose_edge[i][j] = NONE;
+              used_copy[i][j] = false;
             }
           }
 
