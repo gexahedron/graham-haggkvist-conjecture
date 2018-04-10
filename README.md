@@ -1,5 +1,8 @@
 # Graham-Häggkvist conjecture
-Various code related to the Graham-Häggkvist conjecture
+Various code related to the Graham-Häggkvist conjecture.
+
+Code is released under MIT License, except for freetree.h, which should have it's own license,
+but I don't know which one. Probably you should contact Frank Ruskey about it.
 
 TODO: Write smth about:
 * what has been coded
