@@ -113,7 +113,7 @@ bool genEdge(int iter, int v) {
     usedEdge[v1][v2] = true;
 
     whose_edge[v1][v2] = v;
-      
+
     if (genEdge(iter + 1, v))
       return true;
 
@@ -223,7 +223,7 @@ int main(int argc, char** argv) {
 
           cnt = 0;
           bool result = genEdge(1, 0);
-      
+
           if (!cnt) {
             cout << "WTF" << endl;
             wasWTF = true;
@@ -238,7 +238,7 @@ int main(int argc, char** argv) {
               cout << vPart[i] << " ";
             cout << endl;
             for (int i = 0; i < n; ++i) {
-              cout << i << ": "; 
+              cout << i << ": ";
               for (int j = 0; j < n; ++j)
                 if (dege[i][j] > 0)
                   cout << j << " ";
