@@ -37,12 +37,13 @@ int cnt;
 vector<int> gr[2][maxn]; // 0 - from, 1 - to
 
 int n;
-const int tree_size = 5; // number of edges
+const int tree_size = 6; // number of edges
 const int min_n = tree_size + 3; // min_n > tree_size + 1
 const int max_n = min_n;
 const int max_iter = 20;
 
 int neib[maxn][tree_size + 1];
+bool neibed[maxn][maxn];
 bool is_n[maxn][tree_size + 1];
 int v_part[tree_size + 1];
 int cur_tree;
@@ -100,20 +101,13 @@ bool GenEdge(int iter, int v) {
       continue;
     }
 
-    // TODO: add description what is_bad here
-    bool is_bad = false;
-    for (int j = 0; j < iter - 1; ++j) {
-      is_bad = (u == neib[v][j]);
-      if (is_bad) {
-        break;
-      }
-    }
-    if (is_bad) {
+    if (neibed[v][u]) {
       continue;
     }
 
     is_n[u][iter] = true;
     neib[v][iter] = u;
+    neibed[v][u] = true;
     used_edge[v1][v2] = true;
 
     whose_edge[v1][v2] = v;
@@ -143,6 +137,7 @@ bool GenEdge(int iter, int v) {
         --copy_count[v2];
     }
 
+    neibed[v][u] = false;
     used_edge[v1][v2] = false;
     is_n[u][iter] = false;
   }
@@ -232,6 +227,7 @@ int main(int argc, char** argv) {
           }
         }
       }
+
       cerr << "tree#=";
       for (cur_tree = 0; cur_tree < NFreeTree::total_amount - 1; ++cur_tree) {
         cerr << cur_tree << ",";
@@ -253,6 +249,7 @@ int main(int argc, char** argv) {
               used_edge[i][j] = false;
               whose_edge[i][j] = NONE;
               used_copy[i][j] = false;
+              neibed[i][j] = false;
             }
           }
 
