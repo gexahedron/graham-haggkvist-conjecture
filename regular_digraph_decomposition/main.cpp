@@ -40,50 +40,30 @@ int n;
 const int tree_size = 6; // number of edges
 const int min_n = tree_size + 3; // min_n >= tree_size + 1
 const int max_n = min_n;
-const int max_iter = 20;
+const int max_tree_size = maxn;
 
-int neib[maxn][tree_size + 1];
+int neib[maxn][max_tree_size];
 bool neibed[maxn][maxn];
-bool is_n[maxn][tree_size + 1];
-int v_part[tree_size + 1];
+bool is_n[maxn][max_tree_size];
+int v_part[max_tree_size];
 int cur_tree;
-// TODO: fix all this tree_size + 1 to tree_size; don't mess with indices
 
-bool GenEdge(int iter, int v) {
+bool GenEdge(int iter, int tree_copy) {
   if (iter == tree_size + 1) {
-    if (v == n - 1) {
-      bool regular_count = true;
-      for (int v1 = 0; v1 < n; ++v1) {
-        set<int> trees;
-        for (int v2 = 0; v2 < n; ++v2) {
-          if (used_edge[v1][v2]) {
-            trees.insert(whose_edge[v1][v2]);
-          }
-          if (used_edge[v2][v1]) {
-            trees.insert(whose_edge[v2][v1]);
-          }
-        }
-        if (trees.size() != tree_size + 1) {
-          regular_count = false;
-          break;
-        }
-      }
-      if (!regular_count) {
-        return false;
-      }
+    if (tree_copy == n - 1) {
       ++cnt;
       return true; // use false for counting, true for detecting 0
     }
     else {
-      if (GenEdge(1, v + 1)) {
+      if (GenEdge(1, tree_copy + 1)) {
         return true;
       }
     }
     return false;
   }
 
-  const int v_in_tree = NFreeTree::tree_database[cur_tree][iter - 1 + 2];
-  const int cur_v = neib[v][v_in_tree];
+  const int v_in_tree = NFreeTree::tree_database[cur_tree][iter + 1];
+  const int cur_v = neib[tree_copy][v_in_tree];
   const int dir = v_part[v_in_tree];
 
   // TODO: add some heuristic for choosing u
@@ -103,43 +83,43 @@ bool GenEdge(int iter, int v) {
       continue;
     }
 
-    if (neibed[v][u]) {
+    if (neibed[tree_copy][u]) {
       continue;
     }
 
     is_n[u][iter] = true;
-    neib[v][iter] = u;
-    neibed[v][u] = true;
+    neib[tree_copy][iter] = u;
+    neibed[tree_copy][u] = true;
     used_edge[v1][v2] = true;
 
-    whose_edge[v1][v2] = v;
-    const bool prev_used_copy_v1 = used_copy[v1][v];
-    const bool prev_used_copy_v2 = used_copy[v2][v];
-    if (!used_copy[v1][v]) {
-        used_copy[v1][v] = true;
+    whose_edge[v1][v2] = tree_copy;
+    const bool prev_used_copy_v1 = used_copy[v1][tree_copy];
+    const bool prev_used_copy_v2 = used_copy[v2][tree_copy];
+    if (!used_copy[v1][tree_copy]) {
+        used_copy[v1][tree_copy] = true;
         ++copy_count[v1];
     }
-    if (!used_copy[v2][v]) {
-        used_copy[v2][v] = true;
+    if (!used_copy[v2][tree_copy]) {
+        used_copy[v2][tree_copy] = true;
         ++copy_count[v2];
     }
 
     if (copy_count[v1] <= tree_size + 1 && copy_count[v2] <= tree_size + 1) {
-      if (GenEdge(iter + 1, v)) {
+      if (GenEdge(iter + 1, tree_copy)) {
         return true;
       }
     }
 
     if (!prev_used_copy_v1) {
-        used_copy[v1][v] = false;
+        used_copy[v1][tree_copy] = false;
         --copy_count[v1];
     }
     if (!prev_used_copy_v2) {
-        used_copy[v2][v] = false;
+        used_copy[v2][tree_copy] = false;
         --copy_count[v2];
     }
 
-    neibed[v][u] = false;
+    neibed[tree_copy][u] = false;
     used_edge[v1][v2] = false;
     is_n[u][iter] = false;
   }
@@ -257,10 +237,14 @@ int main(int argc, char** argv) {
 
           for (int i = 0; i < n; ++i) {
             neib[i][0] = i;
+            neibed[i][i] = true;
           }
 
           cnt = 0;
           bool result = GenEdge(1, 0);
+          if (cnt) {
+            cerr << "_";
+          }
 
           if (!cnt) {
             cerr << "Found combination without solution!" << endl;
