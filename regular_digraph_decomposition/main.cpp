@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <set>
 #include <sstream>
+#include <functional>
 #include "freetree.h"
 
 using namespace std;
@@ -28,6 +29,7 @@ int deg_out[maxn];
 int edge_deg[maxn][maxn];
 bool used_edge[maxn][maxn];
 int whose_edge[maxn][maxn];
+int edges_left[maxn];
 
 bool used_copy[maxn][maxn];
 int copy_count[maxn];
@@ -48,26 +50,29 @@ bool is_n[maxn][max_tree_size];
 int v_part[max_tree_size];
 int cur_tree;
 
-bool GenEdge(int iter, int tree_copy) {
-  if (iter == tree_size + 1) {
-    if (tree_copy == n - 1) {
-      ++cnt;
-      return true; // use false for counting, true for detecting 0
-    }
-    else {
-      if (GenEdge(1, tree_copy + 1)) {
-        return true;
-      }
-    }
-    return false;
-  }
+bool AllGood() {
+  ++cnt;
+  // use false for counting solutions
+  // use true for detecting that we have no solutions
+  return true;
+}
 
+bool GenerateNextEdge(int iter, int tree_copy,
+    const function<bool(int, int)>& generator,
+    int next_iter, int next_tree_copy)
+{
   const int v_in_tree = NFreeTree::tree_database[cur_tree][iter + 1];
   const int cur_v = neib[tree_copy][v_in_tree];
   const int dir = v_part[v_in_tree];
 
   // TODO: add some heuristic for choosing u
-  // e. g., choose the vertex with least degree left
+  // or change the whole brute-force approach,
+  // e. g. change the order:
+  // say, we look at first edges of all copies of trees,
+  // after that we'll check that copy_counts are the same
+  // if they are - proceed to the next edge
+  // etc.
+  // but this method should be even more strict than what we have right now
   for (int i = 0; i < tree_size; ++i) {
     int u = gr[dir][cur_v][i];
     if (is_n[u][iter]) {
@@ -103,13 +108,22 @@ bool GenEdge(int iter, int tree_copy) {
         used_copy[v2][tree_copy] = true;
         ++copy_count[v2];
     }
+    --edges_left[v1];
+    --edges_left[v2];
 
-    if (copy_count[v1] <= tree_size + 1 && copy_count[v2] <= tree_size + 1) {
-      if (GenEdge(iter + 1, tree_copy)) {
+    if (
+        (copy_count[v1] <= tree_size + 1) &&
+        (edges_left[v1] >= tree_size + 1 - copy_count[v1]) &&
+        (copy_count[v2] <= tree_size + 1) &&
+        (edges_left[v1] >= tree_size + 1 - copy_count[v1]))
+    {
+      if (generator(next_iter, next_tree_copy)) {
         return true;
       }
     }
 
+    ++edges_left[v1];
+    ++edges_left[v2];
     if (!prev_used_copy_v1) {
         used_copy[v1][tree_copy] = false;
         --copy_count[v1];
@@ -126,9 +140,42 @@ bool GenEdge(int iter, int tree_copy) {
   return false;
 }
 
+bool GenByTreeByEdge(int iter, int tree_copy) {
+  if (iter == tree_size + 1) {
+    if (tree_copy == n - 1) {
+      return AllGood();
+    } else {
+      if (GenByTreeByEdge(1, tree_copy + 1)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  return GenerateNextEdge(iter, tree_copy, GenByTreeByEdge, iter + 1, tree_copy);
+}
+
+bool GenByEdgeByTree(int iter, int tree_copy) {
+  if (tree_copy == n) {
+    if (iter == tree_size) {
+      return AllGood();
+    } else {
+      for (int v = 1; v < n; ++v) {
+        if (copy_count[v] != copy_count[0]) {
+          return false;
+        }
+      }
+      if (GenByEdgeByTree(iter + 1, 0)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  return GenerateNextEdge(iter, tree_copy, GenByEdgeByTree, iter, tree_copy + 1);
+}
+
 int main(int argc, char** argv) {
-  //random_device rd;
-  mt19937 g(42);//rd());
+  random_device rd;
+  mt19937 g(rd());//42);//rd());
 
   begin_clock = clock();
   bool found_combination_without_solution = false;
@@ -210,9 +257,9 @@ int main(int argc, char** argv) {
         }
       }
 
-      cerr << "tree#=";
+      cerr << "tree#";
       for (cur_tree = 0; cur_tree < NFreeTree::total_amount - 1; ++cur_tree) {
-        cerr << cur_tree << ",";
+        cerr << " " << cur_tree << ":";
         for (int cur_type = 0; cur_type < 2; ++cur_type) {
           v_part[0] = cur_type;
           for (int i = 0; i < tree_size; ++i) {
@@ -227,6 +274,7 @@ int main(int argc, char** argv) {
 
           for (int i = 0; i < n; ++i) {
             copy_count[i] = 0;
+            edges_left[i] = 2 * tree_size;
             for (int j = 0; j < n; ++j) {
               used_edge[i][j] = false;
               whose_edge[i][j] = NONE;
@@ -241,7 +289,9 @@ int main(int argc, char** argv) {
           }
 
           cnt = 0;
-          bool result = GenEdge(1, 0);
+          bool result = GenByTreeByEdge(1, 0);
+          //bool result = GenByEdgeByTree(1, 0);
+
           if (cnt) {
             cerr << "_";
           }
