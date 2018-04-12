@@ -38,7 +38,7 @@ vector<int> gr[2][maxn]; // 0 - from, 1 - to
 
 int n;
 const int tree_size = 6; // number of edges
-const int min_n = tree_size + 3; // min_n > tree_size + 1
+const int min_n = tree_size + 3; // min_n >= tree_size + 1
 const int max_n = min_n;
 const int max_iter = 20;
 
@@ -86,6 +86,8 @@ bool GenEdge(int iter, int v) {
   const int cur_v = neib[v][v_in_tree];
   const int dir = v_part[v_in_tree];
 
+  // TODO: add some heuristic for choosing u
+  // e. g., choose the vertex with least degree left
   for (int i = 0; i < tree_size; ++i) {
     int u = gr[dir][cur_v][i];
     if (is_n[u][iter]) {
