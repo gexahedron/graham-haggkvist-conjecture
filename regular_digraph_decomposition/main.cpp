@@ -62,8 +62,6 @@ bool GenerateNextEdge(int iter, int tree_copy,
   const int cur_v = neib[tree_copy][v_in_tree];
   const int dir = v_part[v_in_tree];
 
-  // TODO: add some heuristic for choosing u
-  // for faster generation
   for (int i = 0; i < tree_size; ++i) {
     int u = gr[dir][cur_v][i];
     if (is_n[u][iter]) {
@@ -129,7 +127,7 @@ bool GenByEdgeByTree(int iter, int tree_copy) {
 
 int main(int argc, char** argv) {
   random_device rd;
-  mt19937 g(rd());//42);//rd());
+  mt19937 g(rd());
 
   begin_clock = clock();
   bool found_combination_without_solution = false;
