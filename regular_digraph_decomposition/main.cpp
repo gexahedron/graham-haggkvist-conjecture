@@ -28,11 +28,8 @@ int deg_out[maxn];
 
 int edge_deg[maxn][maxn];
 bool used_edge[maxn][maxn];
-int whose_edge[maxn][maxn];
-int edges_left[maxn];
 
 bool used_copy[maxn][maxn];
-int copy_count[maxn];
 
 int cnt;
 
@@ -66,13 +63,7 @@ bool GenerateNextEdge(int iter, int tree_copy,
   const int dir = v_part[v_in_tree];
 
   // TODO: add some heuristic for choosing u
-  // or change the whole brute-force approach,
-  // e. g. change the order:
-  // say, we look at first edges of all copies of trees,
-  // after that we'll check that copy_counts are the same
-  // if they are - proceed to the next edge
-  // etc.
-  // but this method should be even more strict than what we have right now
+  // for faster generation
   for (int i = 0; i < tree_size; ++i) {
     int u = gr[dir][cur_v][i];
     if (is_n[u][iter]) {
@@ -97,40 +88,8 @@ bool GenerateNextEdge(int iter, int tree_copy,
     neibed[tree_copy][u] = true;
     used_edge[v1][v2] = true;
 
-    whose_edge[v1][v2] = tree_copy;
-    const bool prev_used_copy_v1 = used_copy[v1][tree_copy];
-    const bool prev_used_copy_v2 = used_copy[v2][tree_copy];
-    if (!used_copy[v1][tree_copy]) {
-        used_copy[v1][tree_copy] = true;
-        ++copy_count[v1];
-    }
-    if (!used_copy[v2][tree_copy]) {
-        used_copy[v2][tree_copy] = true;
-        ++copy_count[v2];
-    }
-    --edges_left[v1];
-    --edges_left[v2];
-
-    if (
-        (copy_count[v1] <= tree_size + 1) &&
-        (edges_left[v1] >= tree_size + 1 - copy_count[v1]) &&
-        (copy_count[v2] <= tree_size + 1) &&
-        (edges_left[v1] >= tree_size + 1 - copy_count[v1]))
-    {
-      if (generator(next_iter, next_tree_copy)) {
-        return true;
-      }
-    }
-
-    ++edges_left[v1];
-    ++edges_left[v2];
-    if (!prev_used_copy_v1) {
-        used_copy[v1][tree_copy] = false;
-        --copy_count[v1];
-    }
-    if (!prev_used_copy_v2) {
-        used_copy[v2][tree_copy] = false;
-        --copy_count[v2];
+    if (generator(next_iter, next_tree_copy)) {
+      return true;
     }
 
     neibed[tree_copy][u] = false;
@@ -159,11 +118,6 @@ bool GenByEdgeByTree(int iter, int tree_copy) {
     if (iter == tree_size) {
       return AllGood();
     } else {
-      for (int v = 1; v < n; ++v) {
-        if (copy_count[v] != copy_count[0]) {
-          return false;
-        }
-      }
       if (GenByEdgeByTree(iter + 1, 0)) {
         return true;
       }
@@ -273,11 +227,8 @@ int main(int argc, char** argv) {
           }
 
           for (int i = 0; i < n; ++i) {
-            copy_count[i] = 0;
-            edges_left[i] = 2 * tree_size;
             for (int j = 0; j < n; ++j) {
               used_edge[i][j] = false;
-              whose_edge[i][j] = NONE;
               used_copy[i][j] = false;
               neibed[i][j] = false;
             }
